@@ -6,6 +6,10 @@ import base64
 from agreement_class import Massage
 
 
+
+
+
+
 def recv_massage():
     data1 = s.recv(1024)
     #对信息进行编码转换并进行base64加密
