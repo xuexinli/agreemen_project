@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File    :   test_client.py
-@Time    :   2022/11/16 14:16:33
+@File    :   test_client2.py
+@Time    :   2022/11/16 14:37:53
 @Author  :   snowman
 @Version :   2.0
 @License :   
@@ -56,3 +56,19 @@ while True:
     print('服务器:', data)
 sk.close()
 
+'''sk.settimeout(5)
+data = sk.recv(1024).decode()
+print('服务器:', data)
+while True:
+    inp = input('你:').strip()
+    if not inp:
+        continue
+
+    sk.sendall(inp.encode())
+
+    if inp == 'exit':
+        print("谢谢使用，再见！")
+        break
+    data = sk.recv(1024).decode()
+    print('服务器:', data)
+sk.close()'''

@@ -5,15 +5,14 @@
 @Time    :   2022/11/08 20:36:27
 @Author  :   snowman
 @Version :   2.0
-@Contact :   优化代码效率，更换国密算法，加入多线程框架(√)
+@Contact :   优化代码效率，更换国密算法，加入多线程框架
 @License :   
 @Desc    :   None
 '''
 
 import random
 import datetime
-#from hashlib import sha256
-from pysmx.SM3 import hash_msg
+from hashlib import sha256
 
 
 class Massage:
@@ -26,7 +25,7 @@ class Massage:
         if T =="":
             T =  str(datetime.datetime.now())
         if r == -1:
-            r = str(int(random.random()*1000000))
+            r = str(int(random.random()*10000))
         self.K = K
         self.massage_con.append(Me)
         self.massage_con.append(Other)
@@ -35,7 +34,7 @@ class Massage:
         self.massage_con.append(MAC)
 
     #时刻更新系统时间和随机数
-    #随机数为0-99999的随机数
+    #随机数为0-9999的随机数
     @staticmethod
     def resate_mass(self):
         self.massage_con[2] = str(datetime.datetime.now())
@@ -60,6 +59,14 @@ class Massage:
                 buffer += string[i+1]
         return new_list
 
+    '''@staticmethod
+    def MD5_cal(self,tar_list:list):
+        a = str(tuple(tar_list))
+        hash_md5 = md5()  # MD5 hash对象
+        h_md5 = hash_md5.copy()  # 复制一个对象，避免频繁创建对象消耗性能
+        h_md5.update(a.encode('utf-8'))  # 需要将字符串进行编码，编码成二进制数据
+        md5_str = h_md5.hexdigest()  # 获取16进制的摘要
+        return md5_str'''
 
 
     @staticmethod
@@ -82,26 +89,37 @@ class Massage:
     '''
     @staticmethod
     def MAC_create(self,K):
-        temp = [K]
+        temp = [self.massage_con[0],self.massage_con[1],K]
         if self.r1 !=-1:
             temp.append(str(self.r1))
             if self.r2 != -1:
                 temp.append(str(self.r2))
                 if self.r3 !=-1:
                     temp.append(str(self.r3))
-        '''hash_sha256 = sha256()
+        hash_sha256 = sha256()
         hash_sha256 = hash_sha256.copy()
-        hash_sha256.update(str(temp).encode('utf-8'))'''
-        MAC  = hash_msg(str(temp))
+        hash_sha256.update(str(temp).encode('utf-8'))
+        MAC  = hash_sha256.hexdigest()
         return MAC  
 
 
-
+    '''#获取MD5摘要
+    def MD5(self):
+        self.resate_mass(self)
+        self.random_test(self,self.massage_con[3])
+        return self.MD5_cal(self,self.massage_con)'''
     
-    #验证消息的准确性
+    #验证MD5摘要
     def ju_massage(self,string:str):
         list_new = self.str_to_string(self,string)
         print(list_new)
+        #MD5_result = turn_list[5]
+        #list_new = turn_list[0:5]
+        '''#检验MD5是否正确
+        if MD5_result == self.MD5_cal(self,list_new):
+            print("消息没有被篡改")
+        else:
+            print("消息有误")'''
         #检验发送人员是否有误
         if list_new[1] == self.massage_con[0] and  list_new[0] == self.massage_con[1] or not self.massage_con[1]:
             #检验时间是否超时
@@ -116,16 +134,12 @@ class Massage:
             if (date1-date2 ).seconds > 30:
                 print("消息已过期")
                 exit()
-            #如果是服务端第一次接收消息则加入用户ID
+            #通过所有检验则认为该消息是可信的则存储随机数
             if self.massage_con[1] == "":
                 self.massage_con[1] = list_new[0]
-            #存储随机数
             self.random_test(self,int(list_new[3]))
-            #如果有MAC，则进行验证
-            if list_new[4] :
-                MAC_test = self.MAC_create(self,self.K)
-                if MAC_test != list_new[4]:
-                    exit()
+            MAC = self.MAC_create(self,self.K)
+            self.massage_con[4] = MAC
             self.resate_mass(self)
             return 1
 
@@ -135,17 +149,9 @@ class Massage:
         
     def get_list(self):
         self.random_test(self,int(self.massage_con[3]))
-        MAC = self.MAC_create(self,self.K)
-        self.massage_con[4] = MAC
         return self.massage_con
         
         
-    def new_key(self):
-        if self.r1 and self.r2 and self.r3:
-            temp = [self.r2,self.r3,self.r1,self.K]
-            key = hash_msg(str(temp))
-            return self.massage_con[1],key
-        else:
-            print("没有完成协议协商")
+        
 
 
