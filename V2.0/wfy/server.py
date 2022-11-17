@@ -10,74 +10,71 @@
 @Desc    :   None
 '''
 
-# here put the import lib
-
-import socket
 import base64
+import socketserver
 from agreement_class import Massage
 
-
+#Global Variables
 IDLead = "IDLead"
 k="this_is_key"
 rec_ID={}#格式为ID：秘钥
 
 
 
-def recv_massage():
-    data1 = c.recv(1024)
-    dataStr = base64.b64decode(data1).decode('utf-8')  #先解码
-    massage.ju_massage(dataStr)  #对MD5判断 判断的同时  更新MAC存储随机数
-
-def send_massage():
-    massage2 = massage.get_list()
-    temp =  base64.b64encode(str(massage2).encode('utf-8'))
+class MyServer(socketserver.BaseRequestHandler):
+    """
+    必须继承socketserver.BaseRequestHandler类
+    """
+    def handle(self):
+        conn = self.request         # request里封装了所有请求的数据
+        #conn.sendall('欢迎访问socketserver服务器！'.encode())
+        while True:
+            if not self.agreement_test(conn):
+                exit()
+            #后续需要加密
+            data = conn.recv(1024).decode()
+            if data == "exit":
+                print("断开与%s的连接！" % (self.client_address,))
+                break
+            print("来自%s的客户端向你发来信息：%s" % (self.client_address, data))
+            conn.sendall(('已收到你的消息<%s>' % data).encode())
     
+    def agreement_test(self,conn):
+        #第一次握手(接收)
+        massage = Massage(IDLead,K=k)
+        data1 = conn.recv(1024)
+        temp = base64.b64decode(data1).decode('utf-8')
+        a = massage.ju_massage(temp)
+        if a is False :
+            exit()
+        #第二次握手(发送)
+        massage2 = massage.get_list()
+        conn.send(base64.b64encode(str(massage2).encode('utf-8')))
+        #第三次握手(接收)
+        data3 = conn.recv(1024)
+        temp = base64.b64decode(data3).decode('utf-8')
+        a = massage.ju_massage(temp)
+        if a is False :
+            exit()
+        #发送确认信息，并生成秘钥，并把该ID和对应秘钥放到字典里
+        ID , key = massage.new_key()
+        for i,j in rec_ID:
+            if str(i) == ID:
+                print("已有此ID和通信秘钥")
+        rec_ID[ID] = key
+        print(rec_ID)
+        return 1
 
 
 
 
 
-s = socket.socket() #创建socket对象
-host = socket.gethostname() #获取本地主机名
-port = 12345 #设置端口
-s.bind((host,port)) #绑定端口
 
-s.listen(5) #等待客户端链接
-c,addr = s.accept() #建立客户端链接
+if __name__ == '__main__':
+    # 创建一个多线程TCP服务器
+    server = socketserver.ThreadingTCPServer(('127.0.0.1', 9999), MyServer)
+    print("启动socketserver服务器！")
+    # 启动服务器，服务器将一直保持运行状态
+    server.serve_forever()
 
-print("链接地址"+str(addr))
-
-
-massage = Massage(IDLead,K=k)
-
-#第一次握手
-recv_massage()
-print("第一次握手信息接收成功")
-
-#第二次握手
-send_massage()
-print("第二次握手信息发送成功")
-
-#第三次握手
-recv_massage()
-print("第三次握手成功")
-print(massage.massage_con,massage.r1,massage.r2,massage.r3)
-
-
-'''
-massage1.append(massage.MD5())
-temp = base64.b64encode(str(massage1).encode('utf-8'))
-s.send(temp)
-print("client发送成功")
-'''
-
-'''
-while True:
-    client_data = c.recv(1024).decode()
-    if client_data =="exit":
-        exit("通讯结束")
-    print("来自%s客户端向你发来信息：%s" %(addr,client_data))
-    c.send("服务器已接收到你的信息".encode())
-
-'''
 

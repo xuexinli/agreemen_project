@@ -4,7 +4,7 @@
 @File    :   client.py
 @Time    :   2022/11/08 20:38:10
 @Author  :   snowman
-@Version :   1.0
+@Version :   2.0
 @Contact :   
 @License :   
 @Desc    :   None
@@ -12,72 +12,49 @@
 
 import socket
 import base64
-
 from agreement_class import Massage
 
-
-
-
-
-
-def recv_massage():
-    data1 = s.recv(1024)
-    #对信息进行编码转换并进行base64加密
-    dataStr = base64.b64decode(data1).decode('utf-8')  #先解码
-    massage.ju_massage(dataStr)  #对MD5判断 判断的同时  更新MAC存储随机数
-
-def send_massage():
-    massage2 = massage.get_list()
-    temp = temp = base64.b64encode(str(massage2).encode('utf-8'))
-    s.send(temp)
-
-
+#基本信息
 IDas = "IDas"
 IDLead = "IDLead"
 k="this_is_key"
 
 
-
-s=socket.socket()
-host = socket.gethostname()
-port = 12345
-s.connect((host,port))
-
-#t = threading.Thread(target=getInfo)
-#t.start()
+ip_port = ('127.0.0.1', 9999)
+sk = socket.socket()
+sk.connect(ip_port)
+sk.settimeout(5)
 
 
-
+#第一次握手发送消息
 massage = Massage(IDas,IDLead,K=k)
+massage1 = massage.get_list()
+print(massage1)
+sk.send(base64.b64encode(str(massage1).encode('utf-8')))
+#第二次接收
+data2 = sk.recv(1024)
+temp = base64.b64decode(data2).decode('utf-8')
+a = massage.ju_massage(temp)
+if a is False :
+    exit()
+#第三次发送
+massage3 = massage.get_list()
+sk.send(base64.b64encode(str(massage3).encode('utf-8')))
 
-#第一次握手
-send_massage()
 
-#第二次握手
-recv_massage()
-
-#第三次握手
-send_massage()
-print(massage.massage_con,massage.r1,massage.r2,massage.r3)
-
-s.close()
-
-
-'''while True:
-    inp = input("请输入要发送的信息").strip()
+print("链接成功")
+while True:
+    inp = input('你:').strip()
     if not inp:
         continue
-    
-    s.sendall(inp.encode())
-    if inp==exit:
-        print("结束通信")
+
+    sk.sendall(inp.encode())
+
+    if inp == 'exit':
+        print("谢谢使用，再见！")
         break
-    server_reply = s.recv(1024).decode()
-    print(server_reply)
-
-s.close()
-'''
-
-
+    data = sk.recv(1024).decode()
+    print('服务器:', data)
+sk.close()
 
 
