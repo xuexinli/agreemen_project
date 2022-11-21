@@ -5,7 +5,7 @@
 @Time    :   2022/11/08 20:36:27
 @Author  :   snowman
 @Version :   2.0
-@Contact :   优化代码效率，更换国密算法，加入多线程框架(√)
+@Contact :   优化代码效率，更换国密算法(√)，加入多线程框架(√)，封装
 @License :   
 @Desc    :   None
 '''
@@ -101,7 +101,6 @@ class Massage:
     #验证消息的准确性
     def ju_massage(self,string:str):
         list_new = self.str_to_string(self,string)
-        print(list_new)
         #检验发送人员是否有误
         if list_new[1] == self.massage_con[0] and  list_new[0] == self.massage_con[1] or not self.massage_con[1]:
             #检验时间是否超时

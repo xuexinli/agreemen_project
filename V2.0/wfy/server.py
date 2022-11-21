@@ -13,12 +13,13 @@
 import base64
 import socketserver
 from agreement_class import Massage
+from decodeandencode import SM4
 
 #Global Variables
 IDLead = "IDLead"
 k="this_is_key"
 rec_ID={}#格式为ID：秘钥
-
+SM4 = SM4()
 
 
 class MyServer(socketserver.BaseRequestHandler):
@@ -28,16 +29,21 @@ class MyServer(socketserver.BaseRequestHandler):
     def handle(self):
         conn = self.request         # request里封装了所有请求的数据
         #conn.sendall('欢迎访问socketserver服务器！'.encode())
+        a,ID = self.agreement_test(conn)
+        if not a:
+            exit()
+        connet_key = rec_ID[ID]
+        print("完成秘钥协商：秘钥为:",connet_key)    
         while True:
-            if not self.agreement_test(conn):
-                exit()
             #后续需要加密
-            data = conn.recv(1024).decode()
+            raw_data = conn.recv(1024).decode()
+            data =SM4.decrypt(connet_key,raw_data)
             if data == "exit":
                 print("断开与%s的连接！" % (self.client_address,))
                 break
             print("来自%s的客户端向你发来信息：%s" % (self.client_address, data))
-            conn.sendall(('已收到你的消息<%s>' % data).encode())
+            en_data = SM4.encrypt(connet_key,data)
+            conn.sendall(('已收到你的消息<%s>' % en_data).encode())
     
     def agreement_test(self,conn):
         #第一次握手(接收)
@@ -57,13 +63,15 @@ class MyServer(socketserver.BaseRequestHandler):
         if a is False :
             exit()
         #发送确认信息，并生成秘钥，并把该ID和对应秘钥放到字典里
+        massage_sure = "OK"
+        conn.send(base64.b64encode(str(massage_sure).encode('utf-8')))
         ID , key = massage.new_key()
-        for i,j in rec_ID:
+        for i in rec_ID:
             if str(i) == ID:
                 print("已有此ID和通信秘钥")
         rec_ID[ID] = key
         print(rec_ID)
-        return 1
+        return 1,ID
 
 
 
