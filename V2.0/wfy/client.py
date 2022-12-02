@@ -64,6 +64,7 @@ while True:
         print("谢谢使用，再见！")
         break
     raw_data = sk.recv(1024).decode()
+    print("raw_data:",raw_data)
     data = SM4.decrypt(connet_key,raw_data)
     print('服务器:', data)
 sk.close()

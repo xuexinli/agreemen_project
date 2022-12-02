@@ -16,7 +16,7 @@ from agreement_class import Massage
 from decodeandencode import SM4
 
 #Global Variables
-IDLead = "IDLead"
+IDLead = "IDas"
 k="this_is_key"
 rec_ID={}#格式为ID：[CK,IK]
 SM4 = SM4()
