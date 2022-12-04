@@ -12,12 +12,12 @@
 
 import base64
 import socketserver
-from agreement_class import Massage
+from agreement_class import Massage_AS_Leader
 from decodeandencode import SM4
+K = {"Leader_AS":"Leader_AS","Leader_Node":"Leader_Node"}
 
 #Global Variables
 IDLead = "IDas"
-k="this_is_key"
 rec_ID={}#格式为ID：[CK,IK]
 SM4 = SM4()
 
@@ -47,7 +47,7 @@ class MyServer(socketserver.BaseRequestHandler):
     
     def agreement_test(self,conn):
         #第一次握手(接收)
-        massage = Massage(IDLead,K=k)
+        massage = Massage_AS_Leader(IDLead,K=K["Leader_AS"])
         data1 = conn.recv(1024)
         temp = base64.b64decode(data1).decode('utf-8')
         a = massage.ju_massage(temp)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#python
 # -*- encoding: utf-8 -*-
 '''
 @File    :   client.py
@@ -13,14 +13,15 @@
 import socket
 import base64
 import socketserver
-from agreement_class import Massage
+from agreement_class import Massage_AS_Leader,Message_Node_Leader_AS
 from decodeandencode import SM4
 import threading
 
 #基本信息
 IDas = "IDas"
 IDLead = "IDLead"
-k="this_is_key"
+K = {"Leader_AS":"Leader_AS","Leader_Node":"Leader_Node"}
+
 connet_key = ""
 SM4 = SM4()
 
@@ -91,7 +92,7 @@ if __name__ == '__main__':
 
 
     #第一次握手发送消息
-    massage = Massage(IDLead,IDas,K=k)
+    massage = Massage_AS_Leader(IDLead,IDas,K=K["Leader_AS"])
     massage1 = massage.get_list()
     sk.send(base64.b64encode(str(massage1).encode('utf-8')))
     #第二次接收

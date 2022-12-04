@@ -16,7 +16,7 @@ import datetime
 from pysmx.SM3 import hash_msg
 
 
-class Massage:
+class Massage_AS_Leader:
     K = ""
     massage_con = []
     r1=-1
@@ -146,5 +146,29 @@ class Massage:
             return self.massage_con[1],key
         else:
             print("没有完成协议协商")
+
+
+
+class Message_Node_Leader(Me,Send="",T="",r=-1,K=""):
+    r = ""
+    massage_con = []
+    def __init__(self, ):
+        if T =="":
+            T =  str(datetime.datetime.now())
+        if r == -1:
+            r = str(int(random.random()*1000000))
+        self.K = K
+        self.massage_con.append(Me)
+        self.massage_con.append(Send)
+        self.massage_con.append(T)
+        self.massage_con.append(r)
+        self.massage_con.append(hash_msg(self.massage_con)) 
+        return massage_con
+        
+    
+
+
+class Message_Node_AS(Me,Other="",T="",r=-1,MAC="",K=""):
+    pass
 
 

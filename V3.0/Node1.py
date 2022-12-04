@@ -4,7 +4,7 @@
 @File    :   Node1.py
 @Time    :   2022/12/02 12:28:54
 @Author  :   snowman
-@Version :   1.0
+@Version :   2.0
 @License :   
 @Desc    :   None
 '''
@@ -14,7 +14,7 @@
 
 import socket
 import base64
-from agreement_class import Massage
+from agreement_class import Message_Node_Leader
 from decodeandencode import SM4
 
 #基本信息
@@ -27,7 +27,7 @@ connet_key = ""
 #接收Leader广播的地址信息
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
+#设置6666为广播地址
 PORT = 6666
 s.bind(('', PORT))
 print('Listening for broadcast at ', s.getsockname())
@@ -39,7 +39,7 @@ sk = socket.socket()
 sk.connect(ip_port)
 sk.settimeout(5)
 
-
+#
 
 
 
