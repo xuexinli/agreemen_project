@@ -9,7 +9,6 @@
 @Desc    :   None
 '''
 
-# here put the import lib
 import socketserver
 import threading
 from time import sleep

@@ -46,6 +46,7 @@ data_OK = sk.recv(1024)
 temp = base64.b64decode(data_OK).decode('utf-8')
 if temp == "OK":
      ID,connet_key = massage.new_key()
+     print(type(connet_key))
      print(connet_key)
      
 
