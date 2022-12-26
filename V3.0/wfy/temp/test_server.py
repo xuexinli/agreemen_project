@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! python
 # -*- encoding: utf-8 -*-
 '''
 @File    :   test_server.py
@@ -43,7 +43,7 @@ def jujce_threat():
 
 def server():
     # 创建一个多线程TCP服务器
-    server = socketserver.ThreadingTCPServer(('127.0.0.1', 9999), MyServer)
+    server = socketserver.ThreadingTCPServer(('127.0.0.1', 1234), MyServer)
     print("启动socketserver服务器！")
     # 启动服务器，服务器将一直保持运行状态
     server.serve_forever()

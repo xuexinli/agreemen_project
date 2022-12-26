@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#python
 # -*- encoding: utf-8 -*-
 '''
 @File    :   decodeandencode.py
@@ -11,8 +11,7 @@
 
 from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
 import binascii
-from heapq import heappush, heappop
-from collections import OrderedDict
+
 
 
 class SM4:
@@ -31,7 +30,8 @@ class SM4:
         """
         hex_data = hex_str.encode('utf-8')
         str_bin = binascii.unhexlify(hex_data)
-        return str_bin.decode('utf-8')
+        temp = str_bin.decode('utf-8')
+        return temp
 
     def encrypt(self, encrypt_key, value):
         """
@@ -56,11 +56,11 @@ class SM4:
         crypt_sm4.set_key(decrypt_key.encode(), SM4_DECRYPT)
         decrypt_value = crypt_sm4.crypt_ecb(bytes.fromhex(encrypt_value))  # bytes类型
         return self.str_to_hexStr(decrypt_value.hex())
+
 '''str_data = "test_string"
 key = "3l5butlj26hvv313"
 SM4 = SM4()
 print("待加密内容：", str_data)
 encoding = SM4.encrypt(key, str_data)
 print("国密sm4加密后的结果：", encoding)
-print("国密sm4解密后的结果：", SM4.decrypt(key, encoding))
-'''
+print("国密sm4解密后的结果：", SM4.decrypt(key, encoding))'''

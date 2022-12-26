@@ -1,42 +1,46 @@
 #!python
 # -*- encoding: utf-8 -*-
 '''
-@File    :   server.py
+@File    :   AS.py
 @Time    :   2022/11/08 20:38:29
 @Author  :   snowman
-@Version :   2.0
+@Version :   3.0
 @Contact :   
 @License :   
 @Desc    :   None
 '''
 
 import socketserver
-from agrement_AS import Massage_AS_Leader,Message_Node_Leader,str_to_string_toolong
+from agrement_AS import *
 from decodeandencode import SM4
 from pysmx.SM3 import hash_msg
 import datetime
-import threading
+import socket
 
 K = {"Leader_AS":"Leader_AS","AS_Node1":"AS_Node1","AS_Node2":"AS_Node2","AS_Node3":"AS_Node3"}
 
 #Global Variables
-IDLead = "IDas"
+IDLead = "IDLead"
 IDas = "IDas"
 rec_ID={}#格式为ID：raw_key
 SM4 = SM4()
 
-#该函数解决如下过长并有数组嵌套的情况
-# ['IDLead', 'IDas', [['IDNode1', '2022-12-17 10:33:33.915551', '473811'], ['IDNode2', '2022-12-17 10:33:43.681607', '151954']], '0xd9a8b28e5e5d517e8c561207c583b68237fccdd3e0aa41866b07c481016d061e', 'b435118ad11b7cd8934abc720d88a56b8c39f6924cc0f874a9ed9d3fed1ca6b5']
 
 
-def AS_Node_connect(conn,connet_key):
+
+def AS_Node_connect(conn:socket,connet_key):
     global rec_ID
     while True:
             #后续需要加密
-            raw_data = conn.recv(1024).decode()
+            print(conn)
+            s = socket.socket()
+            s = conn
+            raw_data = s.recv(1024).decode()
+            print(raw_data)
             if raw_data=="":
                 continue
             data =SM4.decrypt(connet_key[0],raw_data)
+            print("data:",data)
             data = data[:-32]
             #开始检验并生成秘钥
             #检验
@@ -65,7 +69,7 @@ def AS_Node_connect(conn,connet_key):
                     if MAC_xor ==list_new[3]:
                         #4.验证时间是否在正确范围内
                         new_string = ""#字符串中含有毫秒串，datatime不能识别，所以把毫秒部分删去
-                        for i in i[1]:
+                        for i in list_new[2]:
                             if i ==".":
                                 break
                             new_string +=i
@@ -76,7 +80,8 @@ def AS_Node_connect(conn,connet_key):
                             print("消息已过期")
                             exit()
                         #校验完成，生成返回信息
-                        
+                        print("校验完成")
+                        return AS_Node_return(list_new)
                     else:
                         print("Node聚合的MAC错误")
                 else:
@@ -85,8 +90,33 @@ def AS_Node_connect(conn,connet_key):
                 print("这不是发给我的")
 
 
-def AS_Node_return():
-    pass
+
+'''['IDLead', 'IDas', 
+        [
+            ['Node2', '2022-12-25 11:48:14.674870', '771257'], 
+            ['Node3', '2022-12-25 11:48:14.681870', '300103'], 
+            ['Node1', '2022-12-25 11:48:15.164528', '383510']], 
+        '0xe1d83200609561269fb28a0ad9b5f1417e1bb8d50f8c4dd5a9d972be60b4be31', 
+        '28b9a1fdc66907492ff5bf34d7f6545d8aad1c02a5e358b869c7238733cd2a3f']'''
+def AS_Node_return(list_new:list):
+    result = [IDLead,IDas]
+    temp_list =[] 
+    for i in list_new[2]:
+        temp = [i[0]]
+        T = str(datetime.datetime.now())
+        R = str(int(random.random()*1000000))
+        temp.append(T)
+        temp.append(R)
+        temp.append(i[2])
+        MAC_AS_Node = hash_msg(K["AS_"+temp[0]] + str(temp))
+        temp.append(MAC_AS_Node)
+        temp_list.append(temp)
+        temp = []
+    result.append(temp_list)
+    MAC_AS_L_N = hash_msg(rec_ID[IDLead][1] + str(result))
+    result.append(MAC_AS_L_N)
+    return result
+        
 
 
 
@@ -96,14 +126,13 @@ class MyServer(socketserver.BaseRequestHandler):
     """
     def handle(self):
         conn = self.request         # request里封装了所有请求的数据
-        #conn.sendall('欢迎访问socketserver服务器！'.encode())
         a,ID = self.agreement_test(conn)
         if not a:
             exit()
         connet_key = rec_ID[ID]
         print("完成秘钥协商：秘钥为:",connet_key)    
-        threat_AS_Node = threading.Thread(target=AS_Node_connect,args=(conn,connet_key,))
-        threat_AS_Node.start()
+        result =  AS_Node_connect(conn,connet_key)
+        print(result)
 
 
 

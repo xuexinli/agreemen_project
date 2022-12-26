@@ -4,7 +4,7 @@
 @File    :   Node1.py
 @Time    :   2022/12/02 12:28:54
 @Author  :   snowman
-@Version :   2.0
+@Version :   3.0
 @License :   
 @Desc    :   None
 '''

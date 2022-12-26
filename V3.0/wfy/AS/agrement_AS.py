@@ -14,6 +14,9 @@ from pysmx.SM3 import hash_msg
 import socket
 import base64
 
+
+#该函数解决如下过长并有数组嵌套的情况
+# ['IDLead', 'IDas', [['IDNode1', '2022-12-17 10:33:33.915551', '473811'], ['IDNode2', '2022-12-17 10:33:43.681607', '151954']], '0xd9a8b28e5e5d517e8c561207c583b68237fccdd3e0aa41866b07c481016d061e', 'b435118ad11b7cd8934abc720d88a56b8c39f6924cc0f874a9ed9d3fed1ca6b5']
 def str_to_string_toolong(string):
         buffer = "" #临时字符串储存位置
         temp = 0    #遇到 ' 则加一，为1时置零，并把字符串添加到数组里

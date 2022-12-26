@@ -1,10 +1,10 @@
 #python
 # -*- encoding: utf-8 -*-
 '''
-@File    :   client.py
+@File    :   Leader.py
 @Time    :   2022/11/08 20:38:10
 @Author  :   snowman
-@Version :   2.0
+@Version :   3.0
 @Contact :   
 @License :   
 @Desc    :   None
@@ -13,7 +13,7 @@
 import socket
 import base64
 import socketserver
-from agreement_Leader import Massage_AS_Leader,str_to_string
+from agreement_Leader import *
 from decodeandencode import SM4
 import threading
 import datetime
@@ -82,7 +82,7 @@ def main_send(sk:socket):
     print("这里是main_send线程")
     while True:
         i = 0
-        while i < 40 :
+        while i < 5 :
             sleep(1)
             i +=1
             if len(send_massage) > 4:
@@ -111,7 +111,8 @@ def main_send(sk:socket):
             temp_key = connet_key[IDas]
             MAC_Leader = hash_msg(temp_key[1]+str(massage_AS))
             massage_AS.append(MAC_Leader)
-            sk.send((SM4.encrypt(temp_key[0],str(massage_AS)+temp_key[1])).encode())
+            en_data = SM4.encrypt(temp_key[0],str(massage_AS)+temp_key[1])
+            sk.send(en_data.encode())
             print("成功发送",massage_AS)
 
             
