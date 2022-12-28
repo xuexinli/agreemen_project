@@ -13,13 +13,14 @@
 
 
 import socket
-import base64
 from agreement_Node import Message_Node_Leader
-from decodeandencode import SM4
-from time import sleep
 
+
+
+#密钥
+rec_ID={}#格式为ID：raw_key
 #基本信息
-IDas3 = "IDas"
+IDas = "IDas"
 IDLead2 = "IDLead"
 IDNode1 = "Node1"
 IDNode2 = "Node2"
@@ -47,8 +48,9 @@ sk.connect(ip_port)
 sk.settimeout(1000)
 
 massage3 = Message_Node_Leader(IDNode3,sk,Send=IDLead2,K=AS_Node3)
-massage3.main_Node()
-
+key = massage3.main_Node()
+rec_ID[IDas] =  [key[:32],key[32:]]
+print(rec_ID)
 
 
 

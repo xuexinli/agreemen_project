@@ -15,6 +15,30 @@ from pysmx.SM3 import hash_msg
 import socket
 import base64
 
+def str_to_string_toolong(string):
+    buffer = ""  # 临时字符串储存位置
+    temp = 0  # 遇到 ' 则加一，为1时置零，并把字符串添加到数组里
+    new_list = []  # 空数组
+    i = - len(string)
+    while True:
+        i += 1
+        if string[i] == "'":
+            if temp and string[i+1] == "," or string[i+1] == "]":
+                temp = 0
+                new_list.append(buffer[0:len(buffer)-1])
+                buffer = ""
+            else:
+                temp = 1
+
+        elif string[i] == '[':
+            temp_list, k = str_to_string_toolong(string[i:])
+            i = k
+            new_list.append(temp_list)
+
+        elif string[i] == ']':
+            return new_list, i
+        if temp:
+            buffer += string[i+1]
 
 def str_to_string(string):
         buffer = "" #临时字符串储存位置
@@ -52,13 +76,6 @@ class Massage_AS_Leader:
         self.massage_con.append(r)
         self.massage_con.append(MAC)
         self.conn = conn
-
-    #时刻更新系统时间和随机数
-    #随机数为0-99999的随机数
-    @staticmethod
-    def resate_mass(self):
-        self.massage_con[2] = str(datetime.datetime.now())
-        self.massage_con[3] = str(int(random.random()*10000))
 
         #把字符串转换成数组类型
     @staticmethod
@@ -121,7 +138,7 @@ class Massage_AS_Leader:
     def ju_massage(self,string:str):
         list_new = self.str_to_string(self,string)
         #检验发送人员是否有误
-        if list_new[1] == self.massage_con[0] and  list_new[0] == self.massage_con[1] or not self.massage_con[1]:
+        if   ~(self.massage_con[1]=="") or list_new[1] == self.massage_con[0] and  list_new[0] == self.massage_con[1] :
             #检验时间是否超时
             new_string = ""#字符串中含有毫秒串，datatime不能识别，所以把毫秒部分删去
             for i in list_new[2]:
@@ -144,7 +161,8 @@ class Massage_AS_Leader:
                 MAC_test = self.MAC_create(self,self.K)
                 if MAC_test != list_new[4]:
                     exit()
-            self.resate_mass(self)
+            self.massage_con[2] = str(datetime.datetime.now())
+            self.massage_con[3] = str(int(random.random()*10000))
             return 1
 
         else:
@@ -166,39 +184,23 @@ class Massage_AS_Leader:
         else:
             print("没有完成协议协商")
 
-    def massage_AS(self):
-        conn = self.conn
-        data1 = conn.recv(1024)
-        temp = base64.b64decode(data1).decode('utf-8')
-        a = self.ju_massage(temp)
-        if a is False :
-            exit()
-        #第二次握手(发送)
-        massage2 = self.get_list()
-        conn.send(base64.b64encode(str(massage2).encode('utf-8')))
-        #第三次握手(接收)
-        data3 = conn.recv(1024)
-        temp = base64.b64decode(data3).decode('utf-8')
-        a = self.ju_massage(temp)
-        if a is False :
-            exit()
-        #发送确认信息，并生成秘钥，并把该ID和对应秘钥放到字典里
-        massage_sure = "OK"
-        conn.send(base64.b64encode(str(massage_sure).encode('utf-8')))
 
     def massage_Lead(self):
         #第一次握手发送消息
         sk = self.conn
         massage1 = self.get_list()
+        #print("第一次握手发送消息：",massage1)
         sk.send(base64.b64encode(str(massage1).encode('utf-8')))
         #第二次接收
         data2 = sk.recv(1024)
         temp = base64.b64decode(data2).decode('utf-8')
+        #print("第二次握手接收消息：",temp)
         a = self.ju_massage(temp)
         if a is False :
             exit()
         #第三次发送
         massage3 = self.get_list()
+        #print("第三次握手发送消息：",massage3)
         sk.send(base64.b64encode(str(massage3).encode('utf-8')))
         #收到确认信息
         data_OK = sk.recv(1024)
@@ -211,7 +213,7 @@ class Massage_AS_Leader:
 class Message_Node_Leader():
     r = ""
     massage_con = []
-    def __init__(self, Me,s:socket="",Send="",T="",r=-1,K=""):
+    def __init__(self, Me,s="",Send="",T="",r=-1,K=""):
         if T =="":
             T =  str(datetime.datetime.now())
         if r == -1:

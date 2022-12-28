@@ -26,8 +26,8 @@ IDLead = "IDLead"
 K = {"Leader_AS":"Leader_AS","Leader_Node":"Leader_Node"}
 
 connet_key = {}
-SM4 = SM4()
-receve_massage = []
+SM4_temp = SM4()
+receve_massage = {}
 send_massage = []
 
 
@@ -36,7 +36,7 @@ class MyServer(socketserver.BaseRequestHandler):
     必须继承socketserver.BaseRequestHandler类
     """
     def handle(self):
-        #global send_massage,receve_massage
+        global send_massage,receve_massage
         conn = self.request    
         while True:     
             data = conn.recv(1024).decode()
@@ -46,7 +46,7 @@ class MyServer(socketserver.BaseRequestHandler):
                 print("data是空的")
                 break
             abc = str_to_string(temp)
-            print("接收到的信息为",abc)
+            IDNode = abc[0]
             new_string = ""#字符串中含有毫秒串，datatime不能识别，所以把毫秒部分删去
             for i in abc[2]:
                 if i ==".":
@@ -59,8 +59,17 @@ class MyServer(socketserver.BaseRequestHandler):
                 print("消息已过期")
                 exit()
             send_massage.append(abc)
+            receve_massage[IDNode] = ""
             abc = []
-            print("send_massage:",send_massage)
+            while True:
+                sleep(1)
+                if receve_massage[IDNode] != "":
+                    temp = receve_massage[IDNode]
+                    receve_massage[IDNode] = ""
+                    conn.send(base64.b64encode(str(temp).encode('utf-8')))
+                else:
+                    continue
+
         
         
 
@@ -77,7 +86,7 @@ def server_threat(ip):
     server.serve_forever()
 
 #对AS发送聚合后的消息
-def main_send(sk:socket):
+def main_send(sk):
     global send_massage,receve_massage
     print("这里是main_send线程")
     while True:
@@ -97,10 +106,10 @@ def main_send(sk:socket):
             #abc = [IDNode,IDLeader,T,r,MAC]
             temp = send_massage
             send_massage = []
-            print("main_send里面的函数",temp)
             temp_2 = []
             xor_MAC = 0
             for i in temp:
+                print(i[0]+":"+i[4])
                 xor_MAC ^=  int(i[4],16)
                 a = []
                 a.append(i[0])
@@ -111,9 +120,11 @@ def main_send(sk:socket):
             temp_key = connet_key[IDas]
             MAC_Leader = hash_msg(temp_key[1]+str(massage_AS))
             massage_AS.append(MAC_Leader)
-            en_data = SM4.encrypt(temp_key[0],str(massage_AS)+temp_key[1])
-            sk.send(en_data.encode())
+            en_data = SM4_temp.encryptSM4(temp_key[0],str(massage_AS)+temp_key[1])#
+            sk.send(en_data.encode('utf-8'))
             print("成功发送",massage_AS)
+
+
 
             
 
@@ -121,10 +132,29 @@ def main_send(sk:socket):
 
 
 #接收AS的聚合认证回应
-def main_rece(sk:socket):
+def main_rece(sk):
     while True:
         sk.settimeout(50000)
         raw_data = sk.recv(1024).decode()
+        if raw_data=="":
+            continue
+        else: 
+            data = SM4_temp.decryptSM4(connet_key[IDas][0],raw_data)
+            data = data[:-32]
+            print("收到的消息：",data)
+            list_new= str_to_string_toolong(data)
+            list_new = list_new[0]
+            temp = [IDLead,IDas,list_new[2]]
+            MAC_test = hash_msg(connet_key[IDas][1]+str(temp))
+            if MAC_test == list_new[3]:
+                print("MAC_L校验通过")
+            for i in list_new[2]:
+                receve_massage[i[0]] = i
+            
+            
+
+
+
 
 
 def main():
@@ -139,6 +169,7 @@ def main():
     a1,a2 = massage.massage_Lead()
     #[CK,IK]
     connet_key[a1] = [a2[:32],a2[32:]]
+    print("协商秘钥为：",connet_key)
     
     #sk为 与AS的链接（主）
     print("链接成功")

@@ -22,7 +22,7 @@ K = {"Leader_AS":"Leader_AS","AS_Node1":"AS_Node1","AS_Node2":"AS_Node2","AS_Nod
 #Global Variables
 IDLead = "IDLead"
 IDas = "IDas"
-rec_ID={}#格式为ID：raw_key
+rec_ID={}#格式为ID：[IK:CK]
 SM4 = SM4()
 
 
@@ -32,15 +32,12 @@ def AS_Node_connect(conn:socket,connet_key):
     global rec_ID
     while True:
             #后续需要加密
-            print(conn)
             s = socket.socket()
             s = conn
-            raw_data = s.recv(1024).decode()
-            print(raw_data)
+            raw_data = s.recv(1024).decode('utf-8')
             if raw_data=="":
                 continue
-            data =SM4.decrypt(connet_key[0],raw_data)
-            print("data:",data)
+            data =SM4.decryptSM4(connet_key[0],raw_data)
             data = data[:-32]
             #开始检验并生成秘钥
             #检验
@@ -62,26 +59,23 @@ def AS_Node_connect(conn:socket,connet_key):
                     #3.验证Node的聚合MAC
                     MAC_xor = 0
                     for i in list_new[2]:
-                        massage = Message_Node_Leader(i[0],Send=IDLead,T=i[1],r=i[2],K=K["AS_"+i[0]])
-                        MAC_temp = massage.MAC_return()
-                        print(MAC_temp,"的MAC值")
+                        print(i)
+                        #massage = Message_Node_Leader(i[0],Send=IDLead,T=i[1],r=i[2],K=K["AS_"+i[0]])
+                        #MAC_temp = massage.MAC_return()
+                        temp = [i[0],IDLead,i[1],i[2]]
+                        MAC_temp = hash_msg(str(temp) + K["AS_"+temp[0]] )
+                        print(MAC_temp,":"+i[0]+"的MAC值")
                         MAC_xor ^= int(MAC_temp,16)
-                    if MAC_xor ==list_new[3]:
-                        #4.验证时间是否在正确范围内
-                        new_string = ""#字符串中含有毫秒串，datatime不能识别，所以把毫秒部分删去
-                        for i in list_new[2]:
-                            if i ==".":
-                                break
-                            new_string +=i
-                        date1 = datetime.datetime.now()#获取当前时间进行比对
-                        date2 = datetime.datetime.strptime(new_string,"%Y-%m-%d %H:%M:%S")#把字符串类型的时间转换为datatime类型
-                        #检验消息是否已过30秒
-                        if (date1-date2 ).seconds > 30:
-                            print("消息已过期")
-                            exit()
-                        #校验完成，生成返回信息
-                        print("校验完成")
-                        return AS_Node_return(list_new)
+                    if str(hex(MAC_xor)) ==list_new[3]:
+                        #4.检验MAC_L
+                        temp = [IDLead,IDas,list_new[2],hex(MAC_xor)]
+                        temp_key = rec_ID[IDLead]
+                        MAC_L = hash_msg(temp_key[1]+str(temp))
+                        if MAC_L == list_new[4]:
+                            print("校验完成")
+                            return AS_Node_return(list_new)
+                        else:
+                            print("MAC_L有误")
                     else:
                         print("Node聚合的MAC错误")
                 else:
@@ -107,17 +101,21 @@ def AS_Node_return(list_new:list):
         R = str(int(random.random()*1000000))
         temp.append(T)
         temp.append(R)
-        temp.append(i[2])
-        MAC_AS_Node = hash_msg(K["AS_"+temp[0]] + str(temp))
+        MAC_AS_Node = hash_msg(K["AS_"+temp[0]] + str(temp) + i[2])
         temp.append(MAC_AS_Node)
         temp_list.append(temp)
         temp = []
+        key = hash_msg(K["AS_"+i[0]] + R + i[2])
+        rec_ID[i[0]] = [key[:32],key[32:]]
     result.append(temp_list)
     MAC_AS_L_N = hash_msg(rec_ID[IDLead][1] + str(result))
     result.append(MAC_AS_L_N)
     return result
         
-
+def send_def(sk:socket,massage):
+    temp_key = rec_ID[IDLead]
+    data = SM4.encryptSM4(temp_key[0],str(massage)+temp_key[1])
+    sk.send(data.encode())
 
 
 class MyServer(socketserver.BaseRequestHandler):
@@ -131,8 +129,12 @@ class MyServer(socketserver.BaseRequestHandler):
             exit()
         connet_key = rec_ID[ID]
         print("完成秘钥协商：秘钥为:",connet_key)    
+        #与Node的链接
         result =  AS_Node_connect(conn,connet_key)
         print(result)
+        send_def(conn,result)
+        print(rec_ID)
+        
 
 
 
@@ -156,7 +158,6 @@ class MyServer(socketserver.BaseRequestHandler):
             if str(i) == ID:
                 print("已有此ID和通信秘钥")
         rec_ID[ID] = [key[:32],key[32:]]
-        print(rec_ID)
         return 1,ID
 
 
