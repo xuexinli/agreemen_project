@@ -25,7 +25,10 @@ IDas = "IDas"
 rec_ID={}#格式为ID：[IK:CK]
 SM4 = SM4()
 
-
+#协议格式
+#XXXXXX+数据
+#AS_Leader+数据
+#AS_Node+数据W
 
 
 def AS_Node_connect(conn:socket,connet_key):
