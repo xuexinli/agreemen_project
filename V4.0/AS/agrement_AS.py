@@ -230,6 +230,7 @@ def AS_Node_connect(IDas,IDLead,conn:socket,connet_key,K,raw_data):
                 #MAC_temp = massage.MAC_return()
                 temp = [i[0],IDLead,i[1],i[2]]
                 MAC_temp = hash_msg(str(temp) + K["AS_"+temp[0]] )
+                print(str(temp) + K["AS_"+temp[0]])
                 print(MAC_temp,":"+i[0]+"的MAC值")
                 MAC_xor ^= int(MAC_temp,16)
             if str(hex(MAC_xor)) ==list_new[3]:

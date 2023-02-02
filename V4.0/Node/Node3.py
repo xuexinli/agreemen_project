@@ -51,10 +51,9 @@ class Node:
         self.request = sk
         self.thread = threading.Thread(target=self.recieveData)
         self.thread.start()
-        self.massage = Message_Node_Leader(IDNode,sk,Send=IDLead2,K=K["AS_Node3"])
+        self.massage = Message_Node_AS(IDNode,sk,Send=IDLead2,K=K["AS_Node3"])
         self.massage.main_Node()
         while True:
-            sleep(1)
             if self.key!= "":
                 key = self.key
                 rec_ID[IDas] =  [key[:32],key[32:]]

@@ -46,7 +46,7 @@ class Node:
         self.request = sk
         self.thread = threading.Thread(target=self.recieveData)
         self.thread.start()
-        self.massage = Message_Node_Leader(IDNode,sk,Send=IDLead2,K=["AS_Node1"])
+        self.massage = Message_Node_AS(IDNode,sk,Send=IDLead2,K=K["AS_Node1"])
         self.massage.main_Node()
         while True:
             sleep(1)
@@ -56,7 +56,7 @@ class Node:
                 break
         print("finish")
         #测试Lead_与Node的协议
-        massage = Massage_AS_Leader(IDNode,self.request,Other=IDLead2,K=K["Node_Leader"])
+        massage = Massage_Node_Leader(IDNode,self.request,Other=IDLead2,K=K["Node_Leader"])
         a1,a2 = massage.massage_Lead()
         #[CK,IK]
         rec_ID[a1] = [a2[:32],a2[32:]]

@@ -37,14 +37,16 @@ class MyServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.IDNode = ""
         global send_massage,receve_massage
+        self.sk = self.request
         conn = self.request    
         self.thread = threading.Thread(target=self.recieveData)
         self.thread.start()
         while True:
             sleep(1)
             IDNode = self.IDNode
-            if IDNode in receve_massage :
+            if receve_massage[IDNode] != "" :
                 temp = receve_massage[IDNode]
+                print("temp为：",temp)
                 receve_massage[IDNode] = ""
                 conn.send(("AS_Node+"+str(temp)).encode())
             else:
@@ -75,8 +77,9 @@ class MyServer(socketserver.BaseRequestHandler):
             else:
                 print("消息中的协议有误，错误消息为",data)
 
-    def Node_Leader(data,self):
-        a,temp = AS_Lead_First(IDLead,self.request,K)
+    def Node_Leader(self,data):
+        conn = self.sk
+        a,temp = AS_Lead_First(IDLead,conn,K)
         if not a:
             print("协商有误")
         rec_ID[IDLead] = temp
@@ -149,7 +152,7 @@ def check_send(sk):
             massage_AS= [IDLead,IDas,temp_2,hex(xor_MAC)]
             temp_key = rec_ID[IDas]
             MAC_Leader = hash_msg(temp_key[1]+str(massage_AS))
-            massage_AS.append(MAC_Leader)
+            massage_AS.append(MAC_Leader) 
             en_data = SM4_temp.encryptSM4(temp_key[0],str(massage_AS)+temp_key[1])#
             sk.send(("AS_Node+"+en_data).encode('utf-8'))
             print("成功发送",massage_AS)
@@ -174,6 +177,7 @@ def handle(data):
         print("MAC_L校验通过")
     for i in list_new[2]:
         receve_massage[i[0]] = i
+    print(receve_massage)
             
             
 

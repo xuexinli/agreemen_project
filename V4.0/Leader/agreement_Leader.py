@@ -310,6 +310,7 @@ class Massage_Node:
             if list_new[4]:
                 MAC_test = self.MAC_create(self, self.K)
                 if MAC_test != list_new[4]:
+                    print("MAC不对")
                     exit()
             self.massage_con[2] = str(datetime.datetime.now())
             self.massage_con[3] = str(int(random.random()*10000))
@@ -338,6 +339,7 @@ class Massage_Node:
         data1 = conn.recv(1024).decode()
         print("第一次握手接收消息",data1)
         a = self.ju_massage(data1)
+        print("返回结果",a)
         if a is False:
             exit()
         # 第二次握手(发送)
@@ -360,6 +362,7 @@ class Massage_Node:
 
 def AS_Lead_First(IDLead,conn,K:dict):
     #第一次握手(接收)
+    print("运行到AS_Lead_First")
     massage = Massage_Node(IDLead,conn,K=K["Leader_AS"])
     massage.massage_AS()
     ID , key = massage.new_key()

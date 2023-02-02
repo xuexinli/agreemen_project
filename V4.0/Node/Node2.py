@@ -48,7 +48,7 @@ class Node:
         self.request = sk
         self.thread = threading.Thread(target=self.recieveData)
         self.thread.start()
-        self.massage = Message_Node_Leader(IDNode,sk,Send=IDLead2,K=K["AS_Node2"])
+        self.massage = Message_Node_AS(IDNode,sk,Send=IDLead2,K=K["AS_Node2"])
         self.massage.main_Node()
         while True:
             sleep(1)

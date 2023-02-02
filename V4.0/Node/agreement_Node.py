@@ -33,7 +33,7 @@ def str_to_string(string):
 
 
 
-class Message_Node_Leader():
+class Message_Node_AS():
     r = -1
     R = -1
     massage_con = []
@@ -49,6 +49,7 @@ class Message_Node_Leader():
         self.massage_con.append(r)
         self.r = r
         self.massage_con.append(hash_msg(str(self.massage_con)+str(self.K))) 
+        print(str(self.massage_con)+str(self.K))
         self.s = s
     
 
@@ -102,7 +103,7 @@ def basic_handle(data):
 
 
 
-class Massage_AS_Leader:
+class Massage_Node_Leader:
     K = ""
     massage_con = []
     r1=-1
@@ -233,7 +234,7 @@ class Massage_AS_Leader:
         #第一次握手发送消息
         sk = self.conn
         massage1 = self.get_list()
-        sk.send("AS_Lead+data".encode())
+        sk.send("Node_Leader+data".encode())
         sleep(1)
         print("第一次握手发送消息：",massage1)
         sk.send(str(massage1).encode())
