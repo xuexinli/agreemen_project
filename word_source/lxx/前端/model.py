@@ -48,9 +48,9 @@ class MyWindow(QWidget):
         btn1.setStyleSheet("QPushButton{background-color:rgb(153,255,153)}QPushButton:hover{background-color:rgb(0,102,0)}")
         btn2.setStyleSheet("QPushButton{background-color:rgb(153,255,153)}QPushButton:hover{background-color:rgb(0,102,0)}")
         btn3.setStyleSheet("QPushButton{background-color:rgb(153,255,153)}QPushButton:hover{background-color:rgb(0,102,0)}")
-        btn_press1.clicked.connect(self.btn_press1_clicked)
-        btn_press2.clicked.connect(self.btn_press2_clicked)
-        btn_press3.clicked.connect(self.btn_press3_clicked)
+        # btn_press1.clicked.connect(self.btn_press1_clicked)
+        # btn_press2.clicked.connect(self.btn_press2_clicked)
+        # btn_press3.clicked.connect(self.btn_press3_clicked)
         # for i in name_1():
         #     btn[i] = QPushButton(name_1[i])
         #     btn[i].setStyleSheet("background-color : green")
